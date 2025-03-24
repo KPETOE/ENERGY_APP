@@ -13,8 +13,23 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Add Logo
-st.image("logo.png", width=150)
+#st.image("circular_logo.png", width=150)
 
+
+col1, col2, col3 = st.columns([1, 1, 1])
+with col2:
+    st.image("circular_logo.png", width=150)
+
+
+# Streamlit App
+# st.title("Energy Consumption Prediction & Visualization")
+
+st.markdown(
+    """
+    <h1 style='text-align: center;'>Energy Consumption Prediction & Visualization</h1>
+    """,
+    unsafe_allow_html=True
+)
 
 # Generate synthetic time-series energy data
 np.random.seed(42)
@@ -110,8 +125,6 @@ def predict_energy(model, time, temperature, demand):
         return lstm_model.predict(input_data)[0][0]
     return None
 
-# Streamlit App
-st.title("Energy Consumption Prediction & Visualization")
 
 # Model Selection
 model_choice = st.selectbox("Select Model", ["Linear Regression", "Random Forest", "LSTM"])
@@ -119,9 +132,27 @@ time_input = st.number_input("Time (hour)", min_value=0, max_value=hours, value=
 temperature_input = st.number_input("Temperature (°C)", min_value=-10.0, max_value=50.0, value=25.0)
 demand_input = st.number_input("Energy Demand", min_value=0.0, max_value=1000.0, value=500.0)
 
+
+
+st.markdown("""
+<style>
+div.stButton > button:first-child {
+    background-color: #0099ff;
+    color:#ffffff;
+}
+div.stButton > button:first-child:hover {
+    background-color: #00ff00;
+    color:#ffffff;
+}
+</style>
+""", unsafe_allow_html=True)
+
 if st.button("Predict Consumption"):
     prediction = predict_energy(model_choice, time_input, temperature_input, demand_input)
-    st.write(f"Predicted Energy Consumption: {prediction:.2f}")
+    st.write(f"""
+    **Predicted Energy Consumption:**  
+    <span style="color:green; font-size:20px">{prediction:.2f} kWh</span>
+    """, unsafe_allow_html=True)
 
 # Button to display power production and transmission loss
 if st.button("Show Power Production and Transmission Loss"):
