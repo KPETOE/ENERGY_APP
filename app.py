@@ -137,44 +137,48 @@ demand_input = st.number_input("Energy Demand", min_value=0.0, max_value=1000.0,
 st.markdown("""
 <style>
 div.stButton > button:first-child {
-    background-color: #0099ff;
-    color:#ffffff;
+    background-color: #68A9E6;
+    color:#EDF7F5;
 }
 div.stButton > button:first-child:hover {
-    background-color: #00ff00;
-    color:#ffffff;
+    background-color: #D69FAC;
+    color:#100608;
 }
 </style>
 """, unsafe_allow_html=True)
 
-if st.button("Predict Consumption"):
-    prediction = predict_energy(model_choice, time_input, temperature_input, demand_input)
-    st.write(f"""
-    **Predicted Energy Consumption:**  
-    <span style="color:green; font-size:20px">{prediction:.2f} kWh</span>
-    """, unsafe_allow_html=True)
+
+# Create two columns for layout
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    if st.button("Predict Consumption"):  # Proper indentation
+        prediction = predict_energy(model_choice, time_input, temperature_input, demand_input)
+        st.write(f"""
+        **Predicted Energy Consumption:**  
+        <span style="color:green; font-size:20px">{prediction:.2f} kWh</span>
+        """, unsafe_allow_html=True)
 
 # Button to display power production and transmission loss
-if st.button("Show Power Production and Transmission Loss"):
-    # Get the row corresponding to the selected time
-    selected_data = data[data['time'] == time_input]
-    
-    if not selected_data.empty:
-        solar = selected_data['solar_power'].values[0]
-        wind = selected_data['wind_power'].values[0]
-        fossil_fuel = selected_data['fossil_fuel_power'].values[0]
-        total_production = selected_data['total_power_production'].values[0]
-        transmission_loss = selected_data['transmission_loss'].values[0]
+with col2:
+    if st.button("Show Power Production and Transmission Loss"):
+        # Get the row corresponding to the selected time
+        selected_data = data[data['time'] == time_input]
         
-        st.write(f"Solar Power at Time {time_input}: {solar:.2f} kWh")
-        st.write(f"Wind Power at Time {time_input}: {wind:.2f} kWh")
-        st.write(f"Fossil Fuel Power at Time {time_input}: {fossil_fuel:.2f} kWh")
-        st.write(f"Total Power Production at Time {time_input}: {total_production:.2f} kWh")
-        st.write(f"Transmission Loss at Time {time_input}: {transmission_loss:.2f} kWh")
-    else:
-        st.write("No data available for the selected time.")
-
-
+        if not selected_data.empty:
+            solar = selected_data['solar_power'].values[0]
+            wind = selected_data['wind_power'].values[0]
+            fossil_fuel = selected_data['fossil_fuel_power'].values[0]
+            total_production = selected_data['total_power_production'].values[0]
+            transmission_loss = selected_data['transmission_loss'].values[0]
+            
+            st.write(f"🌞 **Solar Power at {time_input}:** {solar:.2f} kWh")
+            st.write(f"🌬️ **Wind Power at {time_input}:** {wind:.2f} kWh")
+            st.write(f"🔥 **Fossil Fuel Power at {time_input}:** {fossil_fuel:.2f} kWh")
+            st.write(f"⚡ **Total Power Production at {time_input}:** {total_production:.2f} kWh")
+            st.write(f"🔻 **Transmission Loss at {time_input}:** {transmission_loss:.2f} kWh")
+        else:
+            st.write("⚠️ No data available for the selected time.")
 
 # Data Visualization Dashboard
 st.subheader("Energy Demand & Supply Trends")
