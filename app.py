@@ -40,6 +40,17 @@ time = np.arange(hours)
 temperature = 20 + 10 * np.sin(2 * np.pi * time / 8760) + np.random.normal(0, 2, hours)  # Seasonal temp variation
 demand = 500 + 50 * np.sin(2 * np.pi * time / 24) + np.random.normal(0, 10, hours)  # Daily energy demand pattern
 
+
+# Simulate hydro power production
+def simulate_hydro_power(time, max_capacity=600):
+    # Seasonal variation with higher production in winter months
+    seasonal = 0.6 * max_capacity * (1 + np.sin(2 * np.pi * time / 8760 - np.pi/2))
+    # Add random fluctuations
+    hydro_power = seasonal + 0.2 * max_capacity * np.random.rand(len(time))
+    # Ensure non-negative values and cap at maximum capacity
+    return np.clip(hydro_power, 0, max_capacity)
+
+
 # Simulate solar power production
 def simulate_solar_power(time, max_capacity=1000):
     # Solar power is highest at midday (12 PM) and zero at night
@@ -63,9 +74,11 @@ def simulate_fossil_fuel_power(time, base_capacity=500):
 solar_power = simulate_solar_power(time)
 wind_power = simulate_wind_power(time)
 fossil_fuel_power = simulate_fossil_fuel_power(time)
+hydro_power = simulate_hydro_power(time)  # New hydro power simulation
 
-# Total power production
-total_power_production = solar_power + wind_power + fossil_fuel_power
+
+# Total power production (updated to include hydro)
+total_power_production = solar_power + wind_power + fossil_fuel_power + hydro_power
 
 # Simulate energy supply and consumption
 supply = total_power_production * 0.9  # Assume supply is 90% of total production
@@ -74,7 +87,7 @@ consumption = demand * (1 + 0.05 * np.random.randn(hours))  # Simulated energy c
 # Simulate transmission loss
 transmission_loss = total_power_production * 0.05  # Assume 5% transmission loss
 
-# Create a DataFrame
+# Update DataFrame with hydro power
 data = pd.DataFrame({
     'time': time,
     'temperature': temperature,
@@ -84,6 +97,7 @@ data = pd.DataFrame({
     'solar_power': solar_power,
     'wind_power': wind_power,
     'fossil_fuel_power': fossil_fuel_power,
+    'hydro_power': hydro_power,  # New column
     'total_power_production': total_power_production,
     'transmission_loss': transmission_loss
 })
@@ -162,19 +176,20 @@ with col1:
 # Button to display power production and transmission loss
 with col2:
     if st.button("Show Power Production and Transmission Loss"):
-        # Get the row corresponding to the selected time
         selected_data = data[data['time'] == time_input]
         
         if not selected_data.empty:
             solar = selected_data['solar_power'].values[0]
             wind = selected_data['wind_power'].values[0]
             fossil_fuel = selected_data['fossil_fuel_power'].values[0]
+            hydro = selected_data['hydro_power'].values[0]  # New line
             total_production = selected_data['total_power_production'].values[0]
             transmission_loss = selected_data['transmission_loss'].values[0]
             
             st.write(f"🌞 **Solar Power at {time_input}:** {solar:.2f} kWh")
             st.write(f"🌬️ **Wind Power at {time_input}:** {wind:.2f} kWh")
             st.write(f"🔥 **Fossil Fuel Power at {time_input}:** {fossil_fuel:.2f} kWh")
+            st.write(f"💧 **Hydro Power at {time_input}:** {hydro:.2f} kWh")  # New line
             st.write(f"⚡ **Total Power Production at {time_input}:** {total_production:.2f} kWh")
             st.write(f"🔻 **Transmission Loss at {time_input}:** {transmission_loss:.2f} kWh")
         else:
@@ -194,7 +209,14 @@ fig2 = px.line(data.iloc[:100], x='time', y=['consumption'],
 st.plotly_chart(fig2)
 
 st.subheader("Power Production Trends")
-fig3 = px.line(data.iloc[:100], x='time', y=['solar_power', 'wind_power', 'fossil_fuel_power', 'total_power_production'], 
+fig3 = px.line(data.iloc[:100], x='time', 
+              y=['solar_power', 'wind_power', 'fossil_fuel_power', 'hydro_power', 'total_power_production'],
               labels={'value': "Energy (kWh)", 'time': "Time (hours)"},
-              title="Power Production Over Time")
+              title="Power Production Over Time",
+              color_discrete_map={
+                  'fossil_fuel_power': 'black',
+                  'hydro_power': 'orange',
+                  'solar_power': 'blue'
+              })
 st.plotly_chart(fig3)
+
